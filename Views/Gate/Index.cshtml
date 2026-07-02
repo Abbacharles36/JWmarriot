@@ -1,0 +1,227 @@
+@model BuysimTechnology.Models.ViewModels.GateVm
+@{
+    ViewData["Title"] = "Gate Validation";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+
+        <div class="card mb-4">
+            <div class="card-header text-center"
+                 style="background:#1a1a2e;color:#fff;padding:20px;">
+                <i class="bi bi-qr-code-scan"
+                   style="font-size:2rem;color:#f4a623;"></i>
+                <h5 class="mt-2 mb-0">Gate Validation</h5>
+                <small style="color:rgba(255,255,255,0.5);">
+                    Buysimu Technology Dinner Event
+                </small>
+            </div>
+            <div class="card-body p-4">
+                <form method="post" action="/gate/validate">
+                    @Html.AntiForgeryToken()
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">
+                            Ticket Number
+                        </label>
+                        <input name="TicketInput"
+                               value="@Model.TicketInput"
+                               class="form-control form-control-lg text-center"
+                               style="font-family:monospace;font-size:1.3rem;
+                                      letter-spacing:3px;text-transform:uppercase;"
+                               placeholder="BSM-00001"
+                               autofocus />
+                        <small class="text-muted">
+                            Type the ticket number manually or scan QR code
+                        </small>
+                    </div>
+                    <div class="mb-3">
+                        <button type="button" 
+                                id="scanButton"
+                                class="btn btn-outline-secondary w-100 btn-sm fw-semibold"
+                                onclick="toggleScanner()">
+                            <i class="bi bi-camera me-2"></i>Scan QR Code
+                        </button>
+                    </div>
+                    <div id="scannerContainer" style="display:none;margin-bottom:15px;">
+                        <div style="background:#0f3460;border-radius:8px;padding:10px;text-align:center;">
+                            <video id="scanner" style="width:100%;max-width:300px;border-radius:6px;"></video>
+                            <small class="text-muted d-block mt-2">Position QR code in camera</small>
+                            <button type="button" 
+                                    class="btn btn-sm btn-outline-secondary mt-2"
+                                    onclick="toggleScanner()">
+                                <i class="bi bi-x me-1"></i>Close Scanner
+                            </button>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-buysimu w-100 btn-lg fw-bold">
+                        <i class="bi bi-search me-2"></i>Validate Ticket
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        @if (Model.Result != null)
+        {
+            var r = Model.Result;
+            <div class="card"
+                 style="border: 3px solid @(r.IsValid ? "#198754" : "#dc3545");
+                        border-radius:16px;">
+                <div class="card-body text-center p-4">
+                    @if (r.IsValid)
+                    {
+                        <div style="font-size:4rem;color:#198754;">
+                            <i class="bi bi-check-circle-fill"></i>
+                        </div>
+                        <h4 class="text-success fw-bold mt-2">ACCESS GRANTED</h4>
+                    }
+                    else
+                    {
+                        <div style="font-size:4rem;color:#dc3545;">
+                            <i class="bi bi-x-circle-fill"></i>
+                        </div>
+                        <h4 class="text-danger fw-bold mt-2">ACCESS DENIED</h4>
+                    }
+
+                    <p class="mt-2 mb-3" style="font-size:1rem;">@r.Message</p>
+
+                    @if (!string.IsNullOrEmpty(r.GuestName))
+                    {
+                        <div class="ticket-card text-start mt-3">
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <small class="text-muted d-block">Guest Name</small>
+                                    <strong>@r.GuestName</strong>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted d-block">Merchant</small>
+                                    <strong>@r.MerchantName</strong>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted d-block">Ticket</small>
+                                    <code style="color:#f4a623;font-weight:700;">
+                                        @r.TicketNumber
+                                    </code>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted d-block">Status</small>
+                                    <strong>@r.Status</strong>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    <a href="/gate" class="btn btn-outline-dark mt-3 w-100">
+                        <i class="bi bi-arrow-left me-2"></i>Scan Next Ticket
+                    </a>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+<script>
+    let scannerActive = false;
+    let stream = null;
+
+    function toggleScanner() {
+        const container = document.getElementById('scannerContainer');
+        const button = document.getElementById('scanButton');
+
+        if (!scannerActive) {
+            scannerActive = true;
+            container.style.display = 'block';
+            button.innerHTML = '<i class="bi bi-pause me-2"></i>Stop Scanner';
+            startScanner();
+        } else {
+            scannerActive = false;
+            container.style.display = 'none';
+            button.innerHTML = '<i class="bi bi-camera me-2"></i>Scan QR Code';
+            stopScanner();
+        }
+    }
+
+    function startScanner() {
+        const video = document.getElementById('scanner');
+
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+            .then(mediaStream => {
+                stream = mediaStream;
+                video.srcObject = stream;
+                video.onloadedmetadata = () => {
+                    video.play();
+                    scanQRCode();
+                };
+            })
+            .catch(err => {
+                alert('Camera access denied. Please enable camera permissions or type ticket manually.');
+                scannerActive = false;
+                document.getElementById('scannerContainer').style.display = 'none';
+                document.getElementById('scanButton').innerHTML = '<i class="bi bi-camera me-2"></i>Scan QR Code';
+            });
+    }
+
+    function stopScanner() {
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+            stream = null;
+        }
+    }
+
+    function scanQRCode() {
+        const video = document.getElementById('scanner');
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+
+        const processFrame = () => {
+            if (video.readyState === video.HAVE_ENOUGH_DATA && scannerActive) {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                ctx.drawImage(video, 0, 0);
+
+                try {
+                    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    const code = jsQR(imageData.data, canvas.width, canvas.height);
+
+                    if (code) {
+                        const qrValue = code.data;
+
+                        // Extract ticket number from QR code (format: BSM-XXXX...)
+                        if (qrValue.includes('BSM-') || qrValue.match(/^[A-Z0-9]+$/)) {
+                            const ticketNumber = qrValue.match(/BSM-[A-Z0-9]+/)?.[0] || qrValue;
+
+                            // Populate the input field
+                            document.querySelector('input[name="TicketInput"]').value = ticketNumber;
+
+                            // Stop scanner and submit form
+                            stopScanner();
+                            scannerActive = false;
+                            document.getElementById('scannerContainer').style.display = 'none';
+                            document.getElementById('scanButton').innerHTML = '<i class="bi bi-camera me-2"></i>Scan QR Code';
+
+                            // Auto-submit the form
+                            document.querySelector('form[action="/gate/validate"]').submit();
+                            return;
+                        }
+                    }
+                } catch (err) {
+                    // Continue scanning on error
+                }
+            }
+
+            if (scannerActive) {
+                requestAnimationFrame(processFrame);
+            }
+        };
+
+        processFrame();
+    }
+
+    // Auto-focus on the ticket input field when page loads
+    document.addEventListener('DOMContentLoaded', () => {
+        const input = document.querySelector('input[name="TicketInput"]');
+        if (input) {
+            input.focus();
+        }
+    });
+</script>

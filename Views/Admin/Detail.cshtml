@@ -1,0 +1,148 @@
+@model BuysimTechnology.Models.ViewModels.MerchantDetailVm
+@{
+    ViewData["Title"] = Model.Merchant.Name;
+}
+
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center"
+                 style="background:#1a1a2e;color:#fff;">
+                <span><i class="bi bi-building me-2"></i>@Model.Merchant.Name</span>
+                <a href="/admin/edit/@Model.Merchant.MerchantId"
+                   class="btn btn-sm btn-buysimu">
+                    <i class="bi bi-pencil me-1"></i>Edit
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">Contact Email</small>
+                        <strong>@Model.Merchant.ContactEmail</strong>
+                    </div>
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">Phone</small>
+                        <strong>@Model.Merchant.ContactPhone</strong>
+                    </div>
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">Guest Limit</small>
+                        <strong>@Model.Merchant.MaxInvites guests maximum</strong>
+                    </div>
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">Slots Used</small>
+                        <div class="progress mt-1" style="height:8px;">
+                            <div class="progress-bar"
+                                 style="width:@((Model.ActiveCount * 100 / Model.Merchant.MaxInvites))%;background:#f4a623;">
+                            </div>
+                        </div>
+                        <small>@Model.ActiveCount / @Model.Merchant.MaxInvites used</small>
+                    </div>
+                </div>
+
+                <hr/>
+                <small class="text-muted d-block mb-2">Merchant Portal Link</small>
+                <div class="input-group">
+                    <input type="text" class="form-control form-control-sm"
+                           value="@Model.PortalLink" id="portalLink" readonly />
+                    <button class="btn btn-outline-dark btn-sm"
+                            onclick="navigator.clipboard.writeText(document.getElementById('portalLink').value);this.innerHTML='<i class=\'bi bi-check\'></i> Copied'">
+                        <i class="bi bi-clipboard"></i> Copy
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header" style="background:#f4a623;color:#1a1a2e;font-weight:700;">
+                <i class="bi bi-bar-chart me-2"></i>Guest Summary
+            </div>
+            <div class="card-body">
+                @{
+                    var checkedIn = Model.Invitations.Count(i => i.Status == InvitationStatus.CheckedIn);
+                    var pending = Model.Invitations.Count(i => i.Status == InvitationStatus.Pending);
+                }
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Checked In</span>
+                    <span class="badge badge-checkedin fs-6">@checkedIn</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Pending</span>
+                    <span class="badge badge-pending fs-6">@pending</span>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span>Remaining Slots</span>
+                    <span class="badge" style="background:#1a1a2e;color:#f4a623;">
+                        @Model.RemainingSlots
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header" style="background:#1a1a2e;color:#fff;">
+        <i class="bi bi-people me-2"></i>Guest List
+    </div>
+    <div class="card-body p-0">
+        @if (!Model.Invitations.Any())
+        {
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-person-x" style="font-size:3rem;"></i>
+                <p class="mt-2">No guests added yet.</p>
+            </div>
+        }
+        else
+        {
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Ticket</th>
+                        <th>Guest Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>ID Number</th>
+                        <th>Status</th>
+                        <th>QR Code</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var inv in Model.Invitations)
+                    {
+                        <tr>
+                            <td>
+                                <code style="color:#f4a623;font-weight:700;">
+                                    @inv.TicketNumber
+                                </code>
+                            </td>
+                            <td><strong>@inv.GuestName</strong></td>
+                            <td><small>@inv.GuestEmail</small></td>
+                            <td>@inv.GuestPhone</td>
+                            <td>@inv.GuestIdNumber</td>
+                            <td>
+                                @if (inv.Status == InvitationStatus.Pending)
+                                {
+                                    <span class="badge badge-pending">Pending</span>
+                                }
+                                else if (inv.Status == InvitationStatus.CheckedIn)
+                                {
+                                    <span class="badge badge-checkedin">Checked In</span>
+                                }
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(inv.QrCodeBase64))
+                                {
+                                    <img src="data:image/png;base64,@inv.QrCodeBase64"
+                                         width="50" height="50"
+                                         title="@inv.TicketNumber" />
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>

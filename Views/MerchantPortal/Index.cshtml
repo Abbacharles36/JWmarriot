@@ -1,0 +1,283 @@
+@model BuysimTechnology.Models.ViewModels.MerchantPortalVm
+@{
+    ViewData["Title"] = Model.Merchant.Name + " — Guest Portal";
+    ViewData["HideSidebar"] = true;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div style="background:#1a1a2e;min-height:100vh;padding:0;">
+
+    <!-- Header -->
+    <div style="background:#1a1a2e;border-bottom:2px solid #f4a623;padding:20px 32px;
+                display:flex;align-items:center;justify-content:space-between;">
+        <div>
+            <h4 style="color:#f4a623;margin:0;font-weight:800;">BUYSIMU TECHNOLOGY</h4>
+            <small style="color:rgba(255,255,255,0.5);">Dinner Event — Guest Registration</small>
+        </div>
+        <div style="text-align:right;">
+            <span style="color:#fff;font-weight:600;">@Model.Merchant.Name</span><br/>
+            <small style="color:rgba(255,255,255,0.5);">
+                @Model.ActiveCount / @Model.Merchant.MaxInvites guests registered
+            </small>
+        </div>
+    </div>
+
+    <div style="padding:32px;max-width:960px;margin:0 auto;">
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success">
+                <i class="bi bi-check-circle me-2"></i>@TempData["Success"]
+            </div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger">
+                <i class="bi bi-exclamation-circle me-2"></i>@TempData["Error"]
+            </div>
+        }
+
+        <!-- Quota bar -->
+        <div class="card mb-4" style="border:1px solid rgba(244,166,35,0.3);background:#16213e;">
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-2">
+                    <span style="color:#fff;font-weight:600;">Guest Slots</span>
+                    <span style="color:#f4a623;font-weight:700;">
+                        @Model.ActiveCount / @Model.Merchant.MaxInvites used
+                    </span>
+                </div>
+                <div class="progress" style="height:10px;background:rgba(255,255,255,0.1);">
+                    <div class="progress-bar"
+                         style="width:@((Model.Merchant.MaxInvites > 0 ? Model.ActiveCount * 100 / Model.Merchant.MaxInvites : 0))%;
+                                background:#f4a623;border-radius:4px;">
+                    </div>
+                </div>
+                @if (Model.RemainingSlots == 0)
+                {
+                    <small style="color:#f4a623;">
+                        All slots filled. Remove a guest to add a replacement.
+                    </small>
+                }
+                else
+                {
+                    <small style="color:rgba(255,255,255,0.5);">
+                        @Model.RemainingSlots slot(s) remaining
+                    </small>
+                }
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Add guest form -->
+            @if (Model.RemainingSlots > 0)
+            {
+                <div class="col-md-5">
+                    <div class="card" style="border:1px solid rgba(244,166,35,0.3);background:#16213e;">
+                        <div class="card-header"
+                             style="background:#f4a623;color:#1a1a2e;font-weight:700;">
+                            <i class="bi bi-person-plus me-2"></i>Add Guest
+                        </div>
+                        <div class="card-body">
+                            <form method="post"
+                                  action="/portal/addguest?token=@Context.GetRouteValue("token")">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="MerchantId" value="@Model.GuestForm.MerchantId" />
+
+                                <div class="mb-3">
+                                    <label class="form-label"
+                                           style="color:rgba(255,255,255,0.7);font-size:0.85rem;">
+                                        Full Name
+                                    </label>
+                                    <input name="GuestName"
+                                           value="@Model.GuestForm.GuestName"
+                                           class="form-control"
+                                           style="background:#0f3460;border-color:#0f3460;color:#fff;"
+                                           placeholder="John Doe"
+                                           required />
+                                    <span class="text-warning small"></span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label"
+                                           style="color:rgba(255,255,255,0.7);font-size:0.85rem;">
+                                        Email Address
+                                    </label>
+                                    <input name="GuestEmail"
+                                           value="@Model.GuestForm.GuestEmail"
+                                           type="email"
+                                           class="form-control"
+                                           style="background:#0f3460;border-color:#0f3460;color:#fff;"
+                                           placeholder="john@example.com"
+                                           required />
+                                    <span class="text-warning small"></span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label"
+                                           style="color:rgba(255,255,255,0.7);font-size:0.85rem;">
+                                        Phone Number
+                                    </label>
+                                    <input name="GuestPhone"
+                                           value="@Model.GuestForm.GuestPhone"
+                                           class="form-control"
+                                           style="background:#0f3460;border-color:#0f3460;color:#fff;"
+                                           placeholder="+254 700 000 000"
+                                           required />
+                                    <span class="text-warning small"></span>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label class="form-label"
+                                           style="color:rgba(255,255,255,0.7);font-size:0.85rem;">
+                                        National ID / Passport
+                                    </label>
+                                    <input name="GuestIdNumber"
+                                           value="@Model.GuestForm.GuestIdNumber"
+                                           class="form-control"
+                                           style="background:#0f3460;border-color:#0f3460;color:#fff;"
+                                           placeholder="ID or Passport number"
+                                           required />
+                                    <span class="text-warning small"></span>
+                                </div>
+
+                                <button type="submit"
+                                        class="btn btn-buysimu w-100 fw-bold">
+                                    <i class="bi bi-ticket-perforated me-2"></i>
+                                    Register Guest & Generate Ticket
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- Guest list -->
+            <div class="col-md-@(Model.RemainingSlots > 0 ? "7" : "12")">
+                <div class="card"
+                     style="border:1px solid rgba(244,166,35,0.3);background:#16213e;">
+                    <div class="card-header"
+                         style="background:#0f3460;color:#fff;font-weight:600;">
+                        <i class="bi bi-people me-2"></i>
+                        Registered Guests (@Model.ActiveCount)
+                    </div>
+                    <div class="card-body p-0">
+                        @if (!Model.Invitations.Any())
+                        {
+                            <div class="text-center py-5"
+                                 style="color:rgba(255,255,255,0.4);">
+                                <i class="bi bi-person-x"
+                                   style="font-size:3rem;"></i>
+                                <p class="mt-2">No guests added yet.</p>
+                            </div>
+                        }
+                        else
+                        {
+                            @foreach (var inv in Model.Invitations)
+                            {
+                                <div style="border-bottom:1px solid rgba(255,255,255,0.05);
+                                            padding:16px 20px;">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div class="d-flex gap-3">
+                                            @if (!string.IsNullOrEmpty(inv.QrCodeBase64))
+                                            {
+                                                <img src="data:image/png;base64,@inv.QrCodeBase64"
+                                                     width="60" height="60"
+                                                     style="border-radius:8px;" />
+                                            }
+                                            <div>
+                                                <strong style="color:#fff;">
+                                                    @inv.GuestName
+                                                </strong><br/>
+                                                <small style="color:rgba(255,255,255,0.5);">
+                                                    @inv.GuestEmail
+                                                </small><br/>
+                                                <small style="color:rgba(255,255,255,0.5);">
+                                                    @inv.GuestPhone
+                                                </small><br/>
+                                                <code style="color:#f4a623;font-size:0.85rem;">
+                                                    @inv.TicketNumber
+                                                </code>
+                                            </div>
+                                        </div>
+                                        <div class="text-end">
+                                            @if (inv.Status == InvitationStatus.CheckedIn)
+                                            {
+                                                <span class="badge badge-checkedin">
+                                                    Checked In
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge badge-pending mb-2">
+                                                    Pending
+                                                </span><br/>
+                                                <button class="btn btn-sm btn-outline-info me-1"
+                                                        style="font-size:0.75rem;"
+                                                        onclick="printTicket(@inv.InvitationId, '@inv.GuestName', '@inv.TicketNumber', 'data:image/png;base64,@inv.QrCodeBase64')">
+                                                    <i class="bi bi-download"></i> Download
+                                                </button>
+                                                <form method="post"
+                                                      action="/portal/removeguest?token=@Context.GetRouteValue("token")"
+                                                      onsubmit="return confirm('Remove this guest? Their slot will be freed.');"
+                                                      style="display:inline;">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden"
+                                                           name="invitationId"
+                                                           value="@inv.InvitationId" />
+                                                    <button class="btn btn-sm btn-outline-danger"
+                                                            style="font-size:0.75rem;">
+                                                        <i class="bi bi-trash"></i> Remove
+                                                    </button>
+                                                </form>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+        <script>
+            function printTicket(invitationId, guestName, ticketNumber, qrCodeBase64) {
+                const ticketHTML = `
+                    <div style="width: 100%; max-width: 380px; margin: 0 auto; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border: 3px solid #f4a623; border-radius: 12px; padding: 30px 20px; text-align: center;">
+                        <div style="color: #f4a623; font-size: 24px; font-weight: bold; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px;">🎫 ADMIT ONE</div>
+                        <div style="color: #fff; font-size: 14px; margin-bottom: 15px; opacity: 0.9;">BUYSIMU TECHNOLOGY</div>
+                        <div style="color: #fff; font-size: 14px; margin-bottom: 15px; opacity: 0.9;">Dinner Event</div>
+                        <div style="height: 2px; background: #f4a623; margin: 15px 0; border-radius: 1px;"></div>
+                        <div style="margin: 25px 0; display: flex; justify-content: center;">
+                            <img src="${qrCodeBase64}" alt="QR Code" style="width: 180px; height: 180px; border: 3px solid #f4a623; border-radius: 8px; background: #fff; padding: 8px;">
+                        </div>
+                        <div style="color: #f4a623; font-size: 20px; font-weight: bold; font-family: monospace; margin: 15px 0; letter-spacing: 2px;">${ticketNumber}</div>
+                        <div style="height: 2px; background: #f4a623; margin: 15px 0; border-radius: 1px;"></div>
+                        <div style="color: rgba(255,255,255,0.6); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-top: 15px;">Guest Name</div>
+                        <div style="color: #fff; font-size: 16px; margin: 10px 0; font-weight: bold;">${guestName}</div>
+                        <div style="color: rgba(255,255,255,0.6); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-top: 15px;">Please present this ticket at the gate</div>
+                        <div style="color: rgba(255,255,255,0.5); font-size: 10px; margin-top: 20px; text-align: center;">
+                            <p>Generated: ${new Date().toLocaleString()}</p>
+                            <p style="margin-top:10px;">Scan QR code at gate for entry</p>
+                        </div>
+                    </div>
+                `;
+
+                const element = document.createElement('div');
+                element.innerHTML = ticketHTML;
+
+                const opt = {
+                    margin: 5,
+                    filename: ticketNumber + '.pdf',
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2 },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+
+                html2pdf().set(opt).from(element).save();
+            }
+        </script>

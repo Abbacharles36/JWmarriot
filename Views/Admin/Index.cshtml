@@ -1,0 +1,89 @@
+@model BuysimTechnology.Models.ViewModels.AdminDashboardVm
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card" style="background:linear-gradient(135deg,#1a1a2e,#16213e)">
+            <i class="bi bi-building icon"></i>
+            <h2>@Model.TotalMerchants</h2>
+            <p>Total Merchants</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card" style="background:linear-gradient(135deg,#0f3460,#1a5276)">
+            <i class="bi bi-people icon"></i>
+            <h2>@Model.TotalGuests</h2>
+            <p>Total Guests Registered</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card" style="background:linear-gradient(135deg,#155724,#1e7e34)">
+            <i class="bi bi-check-circle icon"></i>
+            <h2>@Model.TotalCheckedIn</h2>
+            <p>Checked In</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card" style="background:linear-gradient(135deg,#856404,#b8860b)">
+            <i class="bi bi-hourglass-split icon"></i>
+            <h2>@Model.TotalPending</h2>
+            <p>Awaiting Check-In</p>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center"
+         style="background:#1a1a2e;color:#fff;">
+        <span><i class="bi bi-building me-2"></i>Recent Merchants</span>
+        <a href="/admin/merchants" class="btn btn-sm btn-buysimu">View All</a>
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Merchant</th>
+                    <th>Contact</th>
+                    <th>Guest Limit</th>
+                    <th>Guests Added</th>
+                    <th>Status</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var m in Model.RecentMerchants)
+                {
+                    var active = m.Invitations.Count(i => i.Status != InvitationStatus.Removed);
+                    <tr>
+                        <td><strong>@m.Name</strong></td>
+                        <td><small>@m.ContactEmail</small></td>
+                        <td>@m.MaxInvites</td>
+                        <td>
+                            <div class="progress" style="height:6px;width:80px;display:inline-block;vertical-align:middle;">
+                                <div class="progress-bar" style="width:@((active * 100 / m.MaxInvites))%;background:#f4a623;"></div>
+                            </div>
+                            <small class="ms-2">@active / @m.MaxInvites</small>
+                        </td>
+                        <td>
+                            @if (m.IsActive)
+                            {
+                                <span class="badge badge-checkedin">Active</span>
+                            }
+                            else
+                            {
+                                <span class="badge badge-removed">Inactive</span>
+                            }
+                        </td>
+                        <td>
+                            <a href="/admin/detail/@m.MerchantId" class="btn btn-sm btn-outline-dark">
+                                View
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

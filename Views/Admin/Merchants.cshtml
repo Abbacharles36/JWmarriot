@@ -1,0 +1,81 @@
+@model List<BuysimTechnology.Models.Merchant>
+@{
+    ViewData["Title"] = "Merchants";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h5 class="mb-0 fw-bold">All Merchants</h5>
+    <a href="/admin/create" class="btn btn-buysimu">
+        <i class="bi bi-plus-circle me-2"></i>Add Merchant
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead style="background:#f8f9fa;">
+                <tr>
+                    <th>Company</th>
+                    <th>Contact</th>
+                    <th>Phone</th>
+                    <th>Guest Limit</th>
+                    <th>Guests</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var m in Model)
+                {
+                    var active = m.Invitations.Count(i => i.Status != InvitationStatus.Removed);
+                    var checkedIn = m.Invitations.Count(i => i.Status == InvitationStatus.CheckedIn);
+                    <tr>
+                        <td>
+                            <strong>@m.Name</strong><br/>
+                            <small class="text-muted">Created @m.CreatedAt.ToString("dd MMM yyyy")</small>
+                        </td>
+                        <td>@m.ContactEmail</td>
+                        <td>@m.ContactPhone</td>
+                        <td>
+                            <span class="badge"
+                                  style="background:#1a1a2e;color:#f4a623;font-size:0.9rem;">
+                                @m.MaxInvites slots
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge badge-checkedin me-1">@checkedIn in</span>
+                            <span class="badge badge-pending">@(active - checkedIn) pending</span>
+                        </td>
+                        <td>
+                            @if (m.IsActive)
+                            {
+                                <span class="badge bg-success">Active</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">Inactive</span>
+                            }
+                        </td>
+                        <td>
+                            <a href="/admin/detail/@m.MerchantId"
+                               class="btn btn-sm btn-outline-dark me-1">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <a href="/admin/edit/@m.MerchantId"
+                               class="btn btn-sm btn-outline-warning me-1">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form method="post" action="/admin/toggle/@m.MerchantId"
+                                  style="display:inline">
+                                @Html.AntiForgeryToken()
+                                <button class="btn btn-sm @(m.IsActive ? "btn-outline-danger" : "btn-outline-success")">
+                                    <i class="bi @(m.IsActive ? "bi-pause-circle" : "bi-play-circle")"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

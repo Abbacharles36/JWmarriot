@@ -1,0 +1,111 @@
+@model BuysimTechnology.Models.ViewModels.MerchantFormVm
+@{
+    ViewData["Title"] = "Add Merchant";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-header" style="background:#1a1a2e;color:#fff;">
+                <i class="bi bi-building-add me-2"></i>Register New Merchant
+            </div>
+            <div class="card-body p-4">
+                <form method="post" action="/admin/create">
+                    @Html.AntiForgeryToken()
+
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div asp-validation-summary="All" class="alert alert-danger"></div>
+                    }
+
+                    <div class="mb-3">
+                        <label asp-for="Name" class="form-label fw-semibold"></label>
+                        <input asp-for="Name" class="form-control @(ViewData.ModelState["Name"]?.Errors.Any() == true ? "is-invalid" : "")" 
+                               placeholder="e.g. Acme Electronics Ltd" />
+                        <span asp-validation-for="Name" class="text-danger small d-block"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="ContactEmail" class="form-label fw-semibold"></label>
+                        <input asp-for="ContactEmail" class="form-control @(ViewData.ModelState["ContactEmail"]?.Errors.Any() == true ? "is-invalid" : "")" 
+                               placeholder="contact@company.com" />
+                        <span asp-validation-for="ContactEmail" class="text-danger small d-block"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="ContactPhone" class="form-label fw-semibold"></label>
+                        <input asp-for="ContactPhone" class="form-control @(ViewData.ModelState["ContactPhone"]?.Errors.Any() == true ? "is-invalid" : "")" 
+                               placeholder="+254 700 000 000" />
+                        <span asp-validation-for="ContactPhone" class="text-danger small d-block"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="MaxInvites" class="form-label fw-semibold">Maximum Guests Allowed</label>
+                        <div class="d-flex gap-2 flex-wrap mt-3">
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                <div class="guest-toggle-wrapper">
+                                    <input type="radio" 
+                                           name="MaxInvites" 
+                                           id="maxinvites@(i)" 
+                                           value="@(i)"
+                                           class="guest-radio"
+                                           @(Model.MaxInvites == i ? "checked" : "") />
+                                    <label for="maxinvites@(i)" class="guest-toggle-label">@i guest@(i > 1 ? "s" : "")</label>
+                                </div>
+                            }
+                        </div>
+                        <span asp-validation-for="MaxInvites" class="text-danger small d-block mt-2"></span>
+                    </div>
+
+                    <style>
+                        .guest-toggle-wrapper {
+                            position: relative;
+                            display: inline-block;
+                        }
+
+                        .guest-radio {
+                            display: none;
+                        }
+
+                        .guest-toggle-label {
+                            display: inline-block;
+                            padding: 10px 18px;
+                            border-radius: 6px;
+                            border: 2px solid #dee2e6;
+                            background-color: #fff;
+                            color: #333;
+                            cursor: pointer;
+                            user-select: none;
+                            transition: all 0.3s ease;
+                            font-weight: 500;
+                        }
+
+                        .guest-toggle-label:hover {
+                            background-color: #f8f9fa;
+                            border-color: #b0b0b0;
+                        }
+
+                        .guest-radio:checked + .guest-toggle-label {
+                            background-color: #f4a623;
+                            color: #fff;
+                            border-color: #f4a623;
+                        }
+
+                        .guest-radio:checked + .guest-toggle-label:hover {
+                            background-color: #e89a1a;
+                            border-color: #e89a1a;
+                        }
+                    </style>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-buysimu px-4">
+                            <i class="bi bi-check-circle me-2"></i>Create Merchant
+                        </button>
+                        <a href="/admin/merchants" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
